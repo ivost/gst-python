@@ -1,5 +1,5 @@
 
-fmport logging
+import logging
 import timeit
 import traceback
 import time
@@ -12,9 +12,11 @@ from gi.repository import Gst, GObject, GstBase
 Gst.init(None)
 
 
-class MyPlugin(Gst.Element):
+# class MyPlugin(Gst.Element):
 
-    __gstmeta__ = ("ivoplugin",
+class MyPlugin(GstBase.BaseTransform):
+
+    __gstmeta__ = ("myplugin",
                    "Transform",
                    "Python",
                    "author")
@@ -123,7 +125,7 @@ def register(class_info):
     #                "Python",
     #                "author")
 
-    version = '1.14.5'
+    version = '1.0'
     gstlicense = 'LGPL'
     origin = ''
     name = class_info.__gstmetadata__[0]
@@ -133,32 +135,26 @@ def register(class_info):
 
     def init_function(plugin, userarg):
         # return init(plugin, class_info, name)
+        print("register type")
         MyType = GObject.type_register(MyPlugin)
-        Gst.Element.register(plugin, 'myfilter', 0, MyType)
+        print("register element")
+        Gst.Element.register(plugin, 'myplugin', 0, MyType)
         return True
 
     # print("register_static", name, description, source, package)
-    version = Gst.version()
     ok = Gst.Plugin.register_static_full(
-        version[0],  # GST_VERSION_MAJOR
-        version[1],  # GST_VERSION_MINOR
-        'myplugin',
-        "My plugin.",
+        Gst.VERSION_MAJOR, Gst.VERSION_MINOR,
+        name, description,
         init_function,
-        '1.0',
-        'GPL',
-        'filter',
-        'myapp.gst',
-        '',  # TODO origin, url
+        version,
+        gstlicense,
+        source,
+        package,
+        origin,
         None)
 
-    print("ok", ok)
-
-    # if not Gst.Plugin.register_static(Gst.VERSION_MAJOR, Gst.VERSION_MINOR,
-    #                                   name, description,
-    #                                   init_function, version, gstlicense,
-    #                                   source, package, origin):
-    #     raise ImportError("Plugin {} not registered".format(name))
+    if not ok:
+        raise ImportError("Plugin {} not registered".format(name))
 
     return ok
 
